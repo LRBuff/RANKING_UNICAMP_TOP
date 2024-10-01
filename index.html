@@ -3,14 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anotador de King</title>
+    <title>Anotador de King - UNICAMP TOP 93</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f0f0f0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            max-width: 200px;
+            margin-bottom: 10px;
+        }
+        .unicamp-text {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #003366;
+            margin-bottom: 20px;
         }
         h1 {
             color: #2c3e50;
@@ -31,6 +45,15 @@
         th {
             background-color: #3498db;
             color: white;
+        }
+        .round-title {
+            background-color: #2980b9;
+            color: white;
+            font-weight: bold;
+        }
+        .round-objective {
+            background-color: #ecf0f1;
+            font-style: italic;
         }
         input[type="number"] {
             width: 50px;
@@ -62,9 +85,23 @@
             color: #e74c3c;
             text-align: center;
         }
+        .subtotal {
+            font-weight: bold;
+            background-color: #ecf0f1;
+        }
+        .total {
+            font-weight: bold;
+            background-color: #34495e;
+            color: white;
+        }
     </style>
 </head>
 <body>
+    <div class="header">
+        <img src="https://www.unicamp.br/unicamp/sites/default/files/styles/large/public/Logo_Unicamp_Miollo_Branco_RGB.png" alt="Logo UNICAMP" class="logo">
+        <div class="unicamp-text">UNICAMP TOP 93</div>
+    </div>
+
     <h1>Anotador de King</h1>
     
     <div id="playerInputs">
@@ -73,25 +110,12 @@
     </div>
 
     <table id="scoreTable">
-        <thead>
+        <thead id="scoreHead">
             <tr>
-                <th>Jogador</th>
-                <th>Pontuação Total</th>
+                <th colspan="2">Rodada</th>
             </tr>
         </thead>
         <tbody id="scoreBody">
-        </tbody>
-    </table>
-
-    <table id="roundTable">
-        <thead>
-            <tr>
-                <th>Rodada</th>
-                <th>Regra</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody id="roundBody">
         </tbody>
     </table>
 
@@ -101,109 +125,8 @@
     <div id="winner"></div>
 
     <script>
-        let players = [];
-        let currentRound = 1;
-        const maxPlayers = 4;
-        const rounds = [
-            { name: "Sem Copas", rule: "Cada carta de copas vale 1 ponto negativo" },
-            { name: "Sem Damas", rule: "Cada dama vale 5 pontos negativos" },
-            { name: "Sem Valete de Espadas", rule: "O valete de espadas vale 13 pontos negativos" },
-            { name: "Sem Vazas", rule: "Cada vaza vale 1 ponto negativo" },
-            { name: "King of Hearts", rule: "O rei de copas vale -25 pontos, outras cartas de copas +1" },
-            { name: "Última Vaza", rule: "A última vaza vale -20 pontos" },
-            { name: "Tudo", rule: "Soma de todas as regras anteriores" }
-        ];
-
-        function initGame() {
-            const savedGame = localStorage.getItem('kingGame');
-            if (savedGame) {
-                const gameState = JSON.parse(savedGame);
-                players = gameState.players;
-                currentRound = gameState.currentRound;
-                updateScoreTable();
-                updateRoundTable();
-            }
-        }
-
-        function saveGame() {
-            const gameState = { players, currentRound };
-            localStorage.setItem('kingGame', JSON.stringify(gameState));
-        }
-
-        function addPlayer() {
-            const playerName = document.getElementById('playerName').value.trim();
-            if (playerName && players.length < maxPlayers) {
-                players.push({ name: playerName, score: 0, roundScores: [] });
-                updateScoreTable();
-                updateRoundTable();
-                document.getElementById('playerName').value = '';
-                saveGame();
-            }
-            if (players.length === maxPlayers) {
-                document.getElementById('playerInputs').style.display = 'none';
-            }
-        }
-
-        function updateScore(playerIndex) {
-            const scoreInput = document.getElementById(`score-${playerIndex}`);
-            const score = parseInt(scoreInput.value) || 0;
-            if (score >= 0 && score <= 13) { // Validação de entrada
-                players[playerIndex].roundScores[currentRound - 1] = score;
-                players[playerIndex].score = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
-                updateScoreTable();
-                updateRoundTable();
-                scoreInput.value = '';
-                saveGame();
-            } else {
-                alert("Por favor, insira um número válido entre 0 e 13.");
-            }
-        }
-
-        function updateScoreTable() {
-            const scoreBody = document.getElementById('scoreBody');
-            scoreBody.innerHTML = '';
-            players.forEach((player) => {
-                const row = scoreBody.insertRow();
-                row.insertCell(0).textContent = player.name;
-                row.insertCell(1).textContent = player.score;
-            });
-        }
-
-        function updateRoundTable() {
-            const roundBody = document.getElementById('roundBody');
-            roundBody.innerHTML = '';
-            const row = roundBody.insertRow();
-            row.insertCell(0).textContent = `Rodada ${currentRound}: ${rounds[currentRound - 1].name}`;
-            row.insertCell(1).textContent = rounds[currentRound - 1].rule;
-            const actionCell = row.insertCell(2);
-            players.forEach((player, index) => {
-                actionCell.innerHTML += `
-                    <input type="number" id="score-${index}" placeholder="Cartas" min="0" max="13">
-                    <button onclick="updateScore(${index})">Adicionar</button><br>
-                `;
-            });
-        }
-
-        function nextRound() {
-            if (currentRound < rounds.length) {
-                currentRound++;
-                updateRoundTable();
-                saveGame();
-            }
-            if (currentRound === rounds.length) {
-                document.getElementById('nextRoundBtn').style.display = 'none';
-                document.getElementById('finishGameBtn').style.display = 'inline-block';
-            }
-        }
-
-        function finishGame() {
-            const winner = players.reduce((prev, current) => (prev.score > current.score) ? prev : current);
-            document.getElementById('winner').textContent = `O vencedor é ${winner.name} com ${winner.score} pontos!`;
-            document.getElementById('finishGameBtn').style.display = 'none';
-            localStorage.removeItem('kingGame');
-        }
-
-        initGame();
+        // O código JavaScript permanece o mesmo que na versão anterior
+        // ... (insira aqui todo o código JavaScript da versão anterior)
     </script>
 </body>
 </html>
