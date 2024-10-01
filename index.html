@@ -85,7 +85,7 @@
             color: #e74c3c;
             text-align: center;
         }
-        .subtotal {
+        .subtotal, .accumulated {
             font-weight: bold;
             background-color: #ecf0f1;
         }
@@ -125,8 +125,167 @@
     <div id="winner"></div>
 
     <script>
-        // O código JavaScript permanece o mesmo que na versão anterior
-        // ... (insira aqui todo o código JavaScript da versão anterior)
+        let players = [];
+        let currentRound = 1;
+        const maxPlayers = 4;
+        const rounds = [
+            { name: "Sem Copas", rule: "Evitar pegar cartas de copas", objective: "Cada carta de copas vale 1 ponto negativo", maxCards: 13, pointsPerCard: -1 },
+            { name: "Sem Damas", rule: "Evitar pegar damas", objective: "Cada dama vale 5 pontos negativos", maxCards: 4, pointsPerCard: -5 },
+            { name: "Sem Valete de Espadas", rule: "Evitar pegar o valete de espadas", objective: "O valete de espadas vale 13 pontos negativos", maxCards: 1, pointsPerCard: -13 },
+            { name: "Sem Vazas", rule: "Evitar fazer vazas", objective: "Cada vaza vale 1 ponto negativo", maxCards: 13, pointsPerCard: -1 },
+            { name: "King of Hearts", rule: "Evitar o rei de copas, pegar outras copas", objective: "O rei de copas vale -25 pontos, outras cartas de copas +1", maxCards: 13, pointsPerCard: 1, specialCard: { value: -25, count: 1 } },
+            { name: "Última Vaza", rule: "Evitar fazer a última vaza", objective: "A última vaza vale -20 pontos", maxCards: 1, pointsPerCard: -20 },
+            { name: "Tudo", rule: "Todas as regras anteriores se aplicam", objective: "Soma de todas as regras anteriores", maxCards: 13, pointsPerCard: -1 }
+        ];
+
+        function initGame() {
+            const savedGame = localStorage.getItem('kingGame');
+            if (savedGame) {
+                const gameState = JSON.parse(savedGame);
+                players = gameState.players;
+                currentRound = gameState.currentRound;
+                updateScoreTable();
+            }
+        }
+
+        function saveGame() {
+            const gameState = { players, currentRound };
+            localStorage.setItem('kingGame', JSON.stringify(gameState));
+        }
+
+        function addPlayer() {
+            const playerName = document.getElementById('playerName').value.trim();
+            if (playerName && players.length < maxPlayers) {
+                players.push({ name: playerName, roundScores: Array(rounds.length).fill(0), accumulatedScore: 0 });
+                updateScoreTable();
+                document.getElementById('playerName').value = '';
+                saveGame();
+            }
+            if (players.length === maxPlayers) {
+                document.getElementById('playerInputs').style.display = 'none';
+            }
+        }
+
+        function calculateScore(roundIndex, cards) {
+            const round = rounds[roundIndex];
+            let score = cards * round.pointsPerCard;
+            if (round.specialCard && cards >= round.specialCard.count) {
+                score += round.specialCard.value;
+            }
+            return score;
+        }
+
+        function updateScore(playerIndex, roundIndex) {
+            const cardsInput = document.getElementById(`cards-${playerIndex}-${roundIndex}`);
+            const cards = parseInt(cardsInput.value) || 0;
+            const round = rounds[roundIndex];
+            
+            if (cards >= 0 && cards <= round.maxCards) {
+                const score = calculateScore(roundIndex, cards);
+                players[playerIndex].roundScores[roundIndex] = score;
+                players[playerIndex].accumulatedScore = players[playerIndex].roundScores.reduce((a, b) => a + b, 0);
+                updateScoreTable();
+                cardsInput.value = '';
+                saveGame();
+            } else {
+                alert(`Por favor, insira um número válido entre 0 e ${round.maxCards}.`);
+            }
+        }
+
+        function updateScoreTable() {
+            const scoreHead = document.getElementById('scoreHead').rows[0];
+            const scoreBody = document.getElementById('scoreBody');
+            
+            // Atualizar cabeçalho
+            scoreHead.innerHTML = '<th colspan="2">Rodada</th>';
+            players.forEach(player => {
+                scoreHead.innerHTML += `<th>${player.name}</th>`;
+            });
+            scoreHead.innerHTML += '<th>Total Rodada</th>';
+
+            // Atualizar corpo da tabela
+            scoreBody.innerHTML = '';
+            rounds.forEach((round, index) => {
+                const titleRow = scoreBody.insertRow();
+                titleRow.className = 'round-title';
+                titleRow.insertCell(0).textContent = `${round.name}`;
+                titleRow.insertCell(1).textContent = `${round.rule}`;
+                players.forEach(() => titleRow.insertCell());
+                titleRow.insertCell();
+
+                const objectiveRow = scoreBody.insertRow();
+                objectiveRow.className = 'round-objective';
+                objectiveRow.insertCell(0).textContent = 'Objetivo:';
+                objectiveRow.insertCell(1).textContent = `${round.objective}`;
+                players.forEach(() => objectiveRow.insertCell());
+                objectiveRow.insertCell();
+
+                const scoreRow = scoreBody.insertRow();
+                scoreRow.insertCell(0).textContent = 'Pontuação:';
+                scoreRow.insertCell(1);
+                
+                let roundTotal = 0;
+                players.forEach((player, playerIndex) => {
+                    const cell = scoreRow.insertCell();
+                    if (index < currentRound) {
+                        cell.textContent = player.roundScores[index];
+                        roundTotal += player.roundScores[index];
+                    } else {
+                        cell.innerHTML = `<input type="number" id="cards-${playerIndex}-${index}" min="0" max="${round.maxCards}">
+                                          <button onclick="updateScore(${playerIndex}, ${index})">OK</button>`;
+                    }
+                });
+                scoreRow.insertCell().textContent = roundTotal;
+
+                // Adicionar linha de pontuação acumulada após cada rodada
+                if (index < currentRound) {
+                    const accumulatedRow = scoreBody.insertRow();
+                    accumulatedRow.className = 'accumulated';
+                    accumulatedRow.insertCell(0).textContent = 'Acumulado:';
+                    accumulatedRow.insertCell(1);
+                    players.forEach((player, playerIndex) => {
+                        accumulatedRow.insertCell().textContent = player.roundScores.slice(0, index + 1).reduce((a, b) => a + b, 0);
+                    });
+                    accumulatedRow.insertCell();
+                }
+            });
+
+            // Adicionar total geral
+            const totalRow = scoreBody.insertRow();
+            totalRow.className = 'total';
+            totalRow.insertCell(0).textContent = 'Total Geral';
+            totalRow.insertCell(1);
+            let totalSum = 0;
+            players.forEach((player, index) => {
+                const total = player.roundScores.reduce((a, b) => a + b, 0);
+                totalRow.insertCell().textContent = total;
+                totalSum += total;
+            });
+            totalRow.insertCell().textContent = totalSum;
+        }
+
+        function nextRound() {
+            if (currentRound < rounds.length) {
+                currentRound++;
+                updateScoreTable();
+                saveGame();
+            }
+            if (currentRound === rounds.length) {
+                document.getElementById('nextRoundBtn').style.display = 'none';
+                document.getElementById('finishGameBtn').style.display = 'inline-block';
+            }
+        }
+
+        function finishGame() {
+            const winner = players.reduce((prev, current) => 
+                (prev.roundScores.reduce((a, b) => a + b, 0) > current.roundScores.reduce((a, b) => a + b, 0)) ? prev : current
+            );
+            document.getElementById('winner').textContent = `O vencedor é ${winner.name} com ${winner.roundScores.reduce((a, b) => a + b, 0)} pontos!`;
+            document.getElementById('finishGameBtn').style.display = 'none';
+            localStorage.removeItem('kingGame');
+        }
+
+        initGame();
     </script>
 </body>
 </html>
