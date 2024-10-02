@@ -129,13 +129,12 @@
         let currentRound = 1;
         const maxPlayers = 4;
         const rounds = [
-            { name: "Sem Copas", rule: "Evitar pegar cartas de copas", objective: "Cada carta de copas vale -1 ponto", maxCards: 13, pointsPerCard: -1 },
-            { name: "Sem Damas", rule: "Evitar pegar damas", objective: "Cada dama vale -5 pontos", maxCards: 4, pointsPerCard: -5 },
-            { name: "Sem Valete de Espadas", rule: "Evitar pegar o valete de espadas", objective: "O valete de espadas vale -13 pontos", maxCards: 1, pointsPerCard: -13 },
-            { name: "Sem Vazas", rule: "Evitar fazer vazas", objective: "Cada vaza vale -1 ponto", maxCards: 13, pointsPerCard: -1 },
-            { name: "King of Hearts", rule: "Evitar o rei de copas, pegar outras copas", objective: "O rei de copas vale -25 pontos, outras cartas de copas +1", maxCards: 13, pointsPerCard: 1, specialCard: { value: -25, count: 1 } },
-            { name: "Última Vaza", rule: "Evitar fazer a última vaza", objective: "A última vaza vale -20 pontos", maxCards: 1, pointsPerCard: -20 },
-            { name: "Tudo", rule: "Todas as regras anteriores se aplicam", objective: "Soma de todas as regras anteriores", maxCards: 13, pointsPerCard: -1 }
+            { name: "Tricks", rule: "Evitar fazer vazas", objective: "Cada carta vale -20 pontos", maxCards: 13, pointsPerCard: -20 },
+            { name: "Hearts", rule: "Evitar pegar cartas de copas", objective: "Cada carta vale -20 pontos", maxCards: 13, pointsPerCard: -20 },
+            { name: "Queens", rule: "Evitar pegar damas", objective: "Cada dama vale -50 pontos", maxCards: 4, pointsPerCard: -50 },
+            { name: "Kings & Jacks", rule: "Evitar pegar Reis e Valetes", objective: "Cada carta vale -30 pontos", maxCards: 8, pointsPerCard: -30 },
+            { name: "King of Hearts", rule: "Evitar pegar o Rei de Copas", objective: "O Rei de Copas vale -160 pontos", maxCards: 1, pointsPerCard: -160 },
+            { name: "Last 2 Tricks", rule: "Evitar fazer as duas últimas vazas", objective: "Cada vaza das duas últimas vale -90 pontos", maxCards: 2, pointsPerCard: -90 }
         ];
 
         function initGame() {
@@ -168,11 +167,7 @@
 
         function calculateScore(roundIndex, cards) {
             const round = rounds[roundIndex];
-            let score = cards * round.pointsPerCard;
-            if (round.specialCard && cards >= round.specialCard.count) {
-                score += round.specialCard.value;
-            }
-            return score;
+            return cards * round.pointsPerCard;
         }
 
         function updateScore(playerIndex, roundIndex) {
