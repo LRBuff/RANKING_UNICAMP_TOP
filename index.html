@@ -129,10 +129,10 @@
         let currentRound = 1;
         const maxPlayers = 4;
         const rounds = [
-            { name: "Sem Copas", rule: "Evitar pegar cartas de copas", objective: "Cada carta de copas vale 1 ponto negativo", maxCards: 13, pointsPerCard: -1 },
-            { name: "Sem Damas", rule: "Evitar pegar damas", objective: "Cada dama vale 5 pontos negativos", maxCards: 4, pointsPerCard: -5 },
-            { name: "Sem Valete de Espadas", rule: "Evitar pegar o valete de espadas", objective: "O valete de espadas vale 13 pontos negativos", maxCards: 1, pointsPerCard: -13 },
-            { name: "Sem Vazas", rule: "Evitar fazer vazas", objective: "Cada vaza vale 1 ponto negativo", maxCards: 13, pointsPerCard: -1 },
+            { name: "Sem Copas", rule: "Evitar pegar cartas de copas", objective: "Cada carta de copas vale -1 ponto", maxCards: 13, pointsPerCard: -1 },
+            { name: "Sem Damas", rule: "Evitar pegar damas", objective: "Cada dama vale -5 pontos", maxCards: 4, pointsPerCard: -5 },
+            { name: "Sem Valete de Espadas", rule: "Evitar pegar o valete de espadas", objective: "O valete de espadas vale -13 pontos", maxCards: 1, pointsPerCard: -13 },
+            { name: "Sem Vazas", rule: "Evitar fazer vazas", objective: "Cada vaza vale -1 ponto", maxCards: 13, pointsPerCard: -1 },
             { name: "King of Hearts", rule: "Evitar o rei de copas, pegar outras copas", objective: "O rei de copas vale -25 pontos, outras cartas de copas +1", maxCards: 13, pointsPerCard: 1, specialCard: { value: -25, count: 1 } },
             { name: "Última Vaza", rule: "Evitar fazer a última vaza", objective: "A última vaza vale -20 pontos", maxCards: 1, pointsPerCard: -20 },
             { name: "Tudo", rule: "Todas as regras anteriores se aplicam", objective: "Soma de todas as regras anteriores", maxCards: 13, pointsPerCard: -1 }
